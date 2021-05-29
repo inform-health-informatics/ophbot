@@ -6,20 +6,39 @@ model_vars <- c('tt', 'y', 'mrn')
 nonmodel_vars <- setdiff(names(mdt), model_vars)
 timeconstant_vars <- c('mrn', 'ward', 'room', 'wardi', 'bed', 'bedi', 'label' )
 
+# try rescaling
+summary(mdt$y)
+mdt[, y_scaled := (y - mean(y, na.rm=TRUE))/ (2*sd(y, na.rm=TRUE))]
+mdt[, tt_scaled := (tt - mean(tt, na.rm=TRUE))/ (2*sd(tt, na.rm=TRUE))]
+# ggplot(mdt, aes(y,y_scaled)) + geom_jitter()
+ 
 # model
-mmix <- lmer(y ~ tt + (1+rcs(tt, 3)|mrn), data=mdt)
+###################################################
+mdt <- na.exclude(mdt)
+mmix <- lmer(y_scaled ~ tt_scaled + (1+rcs(tt_scaled, 3)|mrn), data=mdt)
+###################################################
 
 # Use augment to rapidly build in sample predictions
 rdt <- augment(mmix)
-setnames(rdt,'.fitted', 'yhat')
-sdt <- tibble(mdt[,nonmodel_vars,with=FALSE])
+rdt
+
+# scale back
+rdt$yhat <- mean(mdt$y, na.rm=TRUE) + (rdt$.fitted * (2* sd(mdt$y, na.rm=TRUE)))
+rdt$tt <- mean(mdt$tt, na.rm=TRUE) + (rdt$tt_scaled * (2* sd(mdt$tt, na.rm=TRUE)))
+rdt %>% select(.fitted, tt, yhat)
+
+sdt <- tibble(mdt[,c(nonmodel_vars, 'y'),with=FALSE])
 sdt <- bind_cols(sdt,rdt)
-sdt <- sdt %>% select(c(nonmodel_vars, model_vars, yhat))
+sdt <- sdt %>% select(c(nonmodel_vars, model_vars, yhat, tt_scaled))
 setDT(sdt)
+sdt
 
 # build predictions out of sample (i.e for the last x hours)
 new_data <- data.table(expand.grid(tt=wwindow:0, mrn=unique(sdt$mrn), label=llabel, new_data=TRUE))
+new_data[, tt_scaled := (tt - mean(mdt$tt, na.rm=TRUE))/ (2*sd(mdt$tt, na.rm=TRUE))]
 pdt <- data.table(yhat=predict(mmix, new_data))
+pdt$yhat <- mean(mdt$y, na.rm=TRUE) + (pdt$yhat * (2* sd(mdt$y, na.rm=TRUE)))
+
 pdt <- bind_cols(pdt,new_data)
 udt <- unique(sdt[,timeconstant_vars, with=FALSE])
 udt <- udt[pdt, on=c('mrn==mrn', 'label==label')]
