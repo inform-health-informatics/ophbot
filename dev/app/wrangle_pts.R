@@ -25,3 +25,4 @@ dtpts <- dtpts[ward %in% wards]
 assertthat::assert_that(uniqueN(dtpts$hospital_visit_id) == nrow(dtpts))
 
 emapR::udsDisconnect()
+
