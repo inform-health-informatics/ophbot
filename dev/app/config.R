@@ -9,7 +9,7 @@ llabel <- 'Pulse'
 wwindow <- -72
 
 # Input schema 
-input_schema <- 'star_test'
+input_schema <- 'star'
 
 # Output schema
 target_schema <- 'icu_audit'

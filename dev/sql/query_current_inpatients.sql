@@ -12,12 +12,12 @@ SELECT DISTINCT
 	,vo.hospital_visit_id 
 	,vo.encounter
 
-FROM star_test.hospital_visit vo 
+FROM star.hospital_visit vo 
 -- get core_demographic id
-LEFT JOIN star_test.core_demographic p ON vo.mrn_id = p.mrn_id
+LEFT JOIN star.core_demographic p ON vo.mrn_id = p.mrn_id
 -- get current MRN
-LEFT JOIN star_test.mrn_to_live ON p.mrn_id = mrn_to_live.mrn_id
-LEFT JOIN star_test.mrn ON mrn_to_live.live_mrn_id = mrn.mrn_id
+LEFT JOIN star.mrn_to_live ON p.mrn_id = mrn_to_live.mrn_id
+LEFT JOIN star.mrn ON mrn_to_live.live_mrn_id = mrn.mrn_id
 
 -- where inpatient
 WHERE 
@@ -33,12 +33,12 @@ SELECT
   ,loc.location_string
   ,ids.*
 FROM 
-  star_test.location_visit vd
+  star.location_visit vd
 RIGHT JOIN 
   ids
   ON vd.hospital_visit_id = ids.hospital_visit_id
 LEFT JOIN
-  star_test.location loc
+  star.location loc
   ON vd.location_id = loc.location_id
 WHERE vd.discharge_time IS NULL
 )

@@ -14,10 +14,10 @@ select
   ,ot.id_in_application
 
 from
-  star_test.visit_observation ob
+  star.visit_observation ob
 -- observation look-up
 left join
-  star_test.visit_observation_type ot
+  star.visit_observation_type ot
   on ob.visit_observation_type_id = ot.visit_observation_type
 
 where
